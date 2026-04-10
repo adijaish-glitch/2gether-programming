@@ -1,14 +1,35 @@
 import { Link } from "wouter";
 import { Users, Copy, Check, LogOut, Code2, Wifi, WifiOff } from "lucide-react";
 import { useState } from "react";
+import { RolePanel, RoleBadge } from "./RolePanel";
+import { AccountSettings } from "./AccountSettings";
+import type { Role } from "../../hooks/use-socket";
 
 interface TopNavProps {
   roomId: string;
   usersOnline: number;
   isConnected: boolean;
+  isHost: boolean;
+  users: string[];
+  roles: Record<string, Role>;
+  currentUser: string;
+  myRole: Role;
+  onAssignRole: (username: string, role: Role) => void;
+  onChangeUsername: (name: string) => void;
 }
 
-export function TopNav({ roomId, usersOnline, isConnected }: TopNavProps) {
+export function TopNav({
+  roomId,
+  usersOnline,
+  isConnected,
+  isHost,
+  users,
+  roles,
+  currentUser,
+  myRole,
+  onAssignRole,
+  onChangeUsername,
+}: TopNavProps) {
   const [copied, setCopied] = useState(false);
 
   const copyRoomId = () => {
@@ -37,6 +58,15 @@ export function TopNav({ roomId, usersOnline, isConnected }: TopNavProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        {/* Role assignment UI */}
+        <RolePanel
+          isHost={isHost}
+          users={users}
+          roles={roles}
+          currentUser={currentUser}
+          onAssignRole={onAssignRole}
+        />
+
         <div className="flex items-center gap-2 text-xs font-medium text-[#94a3b8]">
           {isConnected
             ? <Wifi size={14} className="text-[#10b981]" />
@@ -49,10 +79,12 @@ export function TopNav({ roomId, usersOnline, isConnected }: TopNavProps) {
           <Users size={14} className={usersOnline > 1 ? "text-[#3b82f6]" : "text-[#94a3b8]"} />
           <span className="text-[#f8fafc]">{usersOnline} <span className="text-[#94a3b8] hidden sm:inline">online</span></span>
         </div>
-        <Link href="/" className="flex items-center gap-2 text-xs font-medium bg-[#ef4444]/10 text-[#ef4444] hover:bg-[#ef4444] hover:text-white px-3 py-1.5 rounded transition-colors">
-          <LogOut size={14} />
-          <span className="hidden sm:inline">Leave</span>
-        </Link>
+        <AccountSettings
+          username={currentUser}
+          myRole={myRole}
+          isHost={isHost}
+          onChangeUsername={onChangeUsername}
+        />
       </div>
     </div>
   );

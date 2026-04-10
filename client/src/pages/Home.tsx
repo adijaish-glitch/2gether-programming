@@ -1,15 +1,51 @@
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, Play, MessageSquare, Share2, ArrowRight,
-  Github, Twitter, Check, Code2
+  Github, Twitter, Check, Code2, Sparkles, X, User
 } from "lucide-react";
 import { generateRoomId } from "../lib/utils";
+import { AccountSettings, randomName } from "../components/IDE/AccountSettings";
 
 export function Home() {
   const [, setLocation] = useLocation();
 
-  const handleStartCoding = () => setLocation(`/room/${generateRoomId()}`);
+  const [username, setUsername] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [onboardName, setOnboardName] = useState("");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("2gether-username");
+    if (saved) {
+      setUsername(saved);
+    } else {
+      setShowOnboarding(true);
+      setOnboardName(randomName());
+    }
+  }, []);
+
+  const handleStartCoding = () => {
+    if (!username) {
+      setShowOnboarding(true);
+      return;
+    }
+    setLocation(`/room/${generateRoomId()}`);
+  };
+
+  const handleSaveOnboarding = () => {
+    const trimmed = onboardName.trim();
+    if (trimmed.length >= 2) {
+      localStorage.setItem("2gether-username", trimmed);
+      setUsername(trimmed);
+      setShowOnboarding(false);
+    }
+  };
+
+  const handleChangeUsername = (newName: string) => {
+    localStorage.setItem("2gether-username", newName);
+    setUsername(newName);
+  };
 
   const scrollToJoin = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -31,14 +67,32 @@ export function Home() {
                 {["Features", "How it works", "Docs"][i]}
               </a>
             ))}
-            <motion.button
-              onClick={handleStartCoding}
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2"
-            >
-              Start Coding <ArrowRight size={16} />
-            </motion.button>
+            
+            {username ? (
+              <div className="flex items-center gap-4 border-l border-[#1e293b] pl-6 ml-2">
+                <AccountSettings 
+                  username={username}
+                  onChangeUsername={handleChangeUsername}
+                />
+                <motion.button
+                  onClick={handleStartCoding}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2"
+                >
+                  Start Coding <ArrowRight size={16} />
+                </motion.button>
+              </div>
+            ) : (
+              <motion.button
+                onClick={() => setShowOnboarding(true)}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                className="bg-[#3b82f6] hover:bg-[#2563eb] text-white px-5 py-2 rounded-full font-medium text-sm flex items-center gap-2"
+              >
+                Get Started <ArrowRight size={16} />
+              </motion.button>
+            )}
           </div>
         </div>
       </nav>
@@ -244,6 +298,73 @@ export function Home() {
           </div>
         </div>
       </section>
+
+      {/* ONBOARDING MODAL */}
+      <AnimatePresence>
+        {showOnboarding && !username && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-[#0f172a]/60 backdrop-blur-md flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 10 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 10 }}
+              className="bg-[#1a2744] border border-[#3b82f6]/30 w-[400px] rounded-2xl shadow-2xl overflow-hidden"
+              style={{ boxShadow: "0 25px 50px -12px rgba(59, 130, 246, 0.25)" }}
+            >
+              <div className="p-6">
+                <div className="w-12 h-12 bg-[#3b82f6]/10 rounded-xl flex items-center justify-center text-[#3b82f6] mb-4">
+                  <User size={24} />
+                </div>
+                <h3 className="text-2xl font-bold text-[#f8fafc] mb-2">Welcome to 2gether!</h3>
+                <p className="text-[#94a3b8] text-sm mb-6">
+                  What should we call you? Pick a display name to identify yourself in collaborative rooms.
+                </p>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 bg-[#0f172a] border border-[#334155] focus-within:border-[#3b82f6]/60 focus-within:ring-1 focus-within:ring-[#3b82f6]/20 rounded-xl px-4 py-3 transition-all">
+                    <input
+                      value={onboardName}
+                      onChange={(e) => setOnboardName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleSaveOnboarding(); }}
+                      maxLength={24}
+                      className="flex-1 bg-transparent text-[#f8fafc] focus:outline-none font-medium text-lg placeholder:text-[#64748b]"
+                      placeholder="Your name..."
+                      autoFocus
+                    />
+                    <button
+                      onClick={() => setOnboardName(randomName())}
+                      className="text-[#94a3b8] hover:text-[#3b82f6] transition-colors shrink-0 p-2 hover:bg-[#1e293b] rounded-md"
+                      title="Generate random name"
+                    >
+                      <Sparkles size={18} />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between mt-6 gap-3">
+                    <button
+                      onClick={() => setShowOnboarding(false)}
+                      className="px-4 py-2.5 text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#1e293b] rounded-xl font-medium transition-colors"
+                    >
+                      Skip for now
+                    </button>
+                    <button
+                      onClick={handleSaveOnboarding}
+                      disabled={!onboardName.trim() || onboardName.trim().length < 2}
+                      className="flex-1 bg-[#3b82f6] hover:bg-[#2563eb] text-white py-2.5 rounded-xl font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Continue
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* EDITOR PREVIEW */}
       <section id="editor" className="py-24 px-6 max-w-5xl mx-auto">

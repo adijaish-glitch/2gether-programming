@@ -2,22 +2,25 @@ import MonacoEditor from "@monaco-editor/react";
 
 interface EditorProps {
   code: string;
+  readOnly?: boolean;
+  language?: string;
+  filename?: string;
   onChange: (value: string) => void;
 }
 
-export function Editor({ code, onChange }: EditorProps) {
+export function Editor({ code, readOnly = false, language = "javascript", filename = "index.js", onChange }: EditorProps) {
   return (
     <div className="flex-1 relative bg-[#1e1e1e] flex flex-col min-h-0">
       <div className="h-9 border-b border-[#334155] bg-[#252526] flex items-center px-4 shrink-0">
         <div className="flex items-center gap-2 bg-[#1e1e1e] border-t border-l border-r border-[#334155] px-4 py-1.5 rounded-t text-xs font-medium text-[#3b82f6] -mb-[1px]">
           <span className="w-2 h-2 rounded-full bg-[#3b82f6]/50" />
-          index.js
+          {filename}
         </div>
       </div>
       <div className="flex-1 w-full relative">
         <MonacoEditor
           height="100%"
-          language="javascript"
+          language={language}
           theme="vs-dark"
           value={code}
           onChange={(val) => onChange(val || "")}
@@ -34,6 +37,7 @@ export function Editor({ code, onChange }: EditorProps) {
             formatOnPaste: true,
             overviewRulerLanes: 0,
             wordWrap: "on",
+            readOnly: readOnly,
           }}
           loading={
             <div className="flex items-center justify-center h-full w-full bg-[#1e1e1e] text-[#94a3b8]">
