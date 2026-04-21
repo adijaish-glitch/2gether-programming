@@ -32,12 +32,8 @@ export function Room() {
   const handleRunCode = () => {
     setOutput("");
     setError(null);
-    if (activeLanguage !== "javascript") {
-      setError(`Execution is only supported for JavaScript.\nOpen or create a .js file to run code.`);
-      return;
-    }
     
-    runCode(activeCode, {
+    runCode({ code: activeCode, language: activeLanguage }, {
       onSuccess: (data) => {
         setOutput(data.output);
         setError(data.error ?? null);

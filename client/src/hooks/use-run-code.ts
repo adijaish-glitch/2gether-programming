@@ -7,11 +7,11 @@ interface RunCodeResponse {
 
 export function useRunCode() {
   return useMutation({
-    mutationFn: async (code: string): Promise<RunCodeResponse> => {
+    mutationFn: async ({ code, language }: { code: string; language?: string }): Promise<RunCodeResponse> => {
       const res = await fetch("/api/run-code", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code, language }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => null);
